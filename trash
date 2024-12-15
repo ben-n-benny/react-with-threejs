@@ -1,0 +1,89 @@
+/* eslint-disable no-unused-vars */
+/* eslint-disable react/no-unknown-property */
+import { useEffect, useState, useRef } from "react";
+import { NewTodoForm } from "./NewTodoForm";
+import { TodoList } from "./TodoList";
+import { Canvas, useFrame } from "@react-three/fiber";
+import { Box, OrbitControls, Sparkles, Text } from "@react-three/drei";
+
+const RotatingCube = () => {
+  const meshRef = useRef();
+  console.log("RENDER")
+  useFrame(() => {
+    if(meshRef.current) {
+      meshRef.current.rotation.y += 0.01
+      meshRef.current.rotation.x += 0.01
+    }
+  })
+
+  return (
+    <mesh ref={meshRef}>
+      <cylinderGeometry args={[1, 1, 1]} />
+      <meshLambertMaterial color="#468585" emissive="#468585" />
+
+      <Sparkles color="orange" count={100} scale={2} size={2}  noise={0.2}/>
+    </mesh>
+  )
+}
+export default function App() {
+  const [newItem, setNewItem] = useState("Sample");
+
+  const [todos, setTodos] = useState(() => {
+    const localValue = localStorage.getItem("ITEMS");
+    if (localValue == null) return [];
+
+    return JSON.parse(localValue);
+  });
+
+  useEffect(() => {
+    localStorage.setItem("ITEMS", JSON.stringify(todos));
+  }, [todos]);
+  function addTodo(title) {
+    setTodos((currentTodos) => {
+      return [
+        ...currentTodos,
+        { id: crypto.randomUUID(), title: title, completed: false },
+      ];
+    });
+  }
+
+  function toggleTodo(id, completed) {
+    setTodos((currentTodos) => {
+      return currentTodos.map((todo) => {
+        if (todo.id === id) {
+          return { ...todo, completed };
+        }
+
+        return todo;
+      });
+    });
+  }
+
+  function deleteTodo(id) {
+    setTodos((currentTodos) => {
+      return currentTodos.filter((todo) => todo.id !== id);
+    });
+  }
+
+  console.log(todos);
+  return (
+    <>
+      <Canvas style={{height: '100vh', width: '100vw', display: 'flex', justifyContent: 'center', alignItems: 'center'}}>
+        {/* <OrbitControls enableZoom enablePan enableRotate/> */}
+
+        {/* <directionalLight color={0x9CDBA6} position={[1,1,1]}/>
+        <RotatingCube/> */}
+
+        <mesh>
+          <Text position={[0,0,0]} fontSize={0.6} onClick={(e) => setNewItem("SAMPLE TEST")}>{newItem}</Text>
+        </mesh>
+
+      </Canvas>
+      <input type="text" onChange={(e) => setNewItem(e.target.value)}/>
+
+      {/* <NewTodoForm onSubmit={addTodo} />
+      <h1 className="header">Todo List</h1>
+      <TodoList todos={todos} toggleTodo={toggleTodo} deleteTodo={deleteTodo} /> */}
+    </>
+  );
+}
